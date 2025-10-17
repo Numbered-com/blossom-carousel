@@ -13,11 +13,11 @@ export default defineConfig({
 		},
 		rollupOptions: {
 			// Don't bundle Vue, expect the app to provide it
-			external: ['vue', '@blossom-carousel/core'],
+			external: ['vue', '@numbered/carousel'],
 			output: {
 				globals: {
 					vue: 'Vue',
-					'@blossom-carousel/core': 'BlossomCarouselCore',
+					'@numbered/carousel': 'BlossomCarouselCore',
 				},
 			},
 		},

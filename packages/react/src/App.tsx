@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import BlossomCarousel, { type BlossomCarouselRef } from './BlossomCarousel'
-import '@blossom-carousel/core/style.css'
+import '@numbered/carousel/style.css'
 
 export default function App() {
 	const carouselRef = useRef<BlossomCarouselRef>(null)

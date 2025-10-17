@@ -4,13 +4,13 @@ A native-scroll-first carousel enhanced with drag support for React.
 
 ## Installation
 
-`npm install @blossom-carousel/react`
+`npm install @numbered/carousel/react`
 
 #### React
 
 ```jsx
-import { BlossomCarousel } from "@blossom-carousel/react";
-import "@blossom-carousel/core/style.css";
+import { BlossomCarousel } from "@numbered/carousel/react";
+import "@numbered/carousel/core/style.css";
 
 function App() {
   return <BlossomCarousel>{/* slides */}</BlossomCarousel>;
@@ -22,8 +22,8 @@ function App() {
 Add the import to your page or component:
 
 ```jsx
-import { BlossomCarousel } from "@blossom-carousel/react";
-import "@blossom-carousel/core/style.css";
+import { BlossomCarousel } from "@numbered/carousel/react";
+import "@numbered/carousel/core/style.css";
 
 export default function Page() {
   return <BlossomCarousel>{/* slides */}</BlossomCarousel>;

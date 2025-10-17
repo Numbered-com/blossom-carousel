@@ -1,15 +1,18 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
-    "strict": true,
-    "jsx": "preserve",
-    "declaration": true,
-    "sourceMap": true,
-    "outDir": "dist",
-    "lib": ["esnext", "dom"],
-    "skipLibCheck": true
-  },
-  "include": ["src"]
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"jsx": "preserve",
+		"declaration": true,
+		"sourceMap": true,
+		"outDir": "dist",
+		"lib": ["esnext", "dom"],
+		"skipLibCheck": true,
+		"paths": {
+			"@numbered/carousel": ["../core/src/index.ts"]
+		}
+	},
+	"include": ["src"]
 }

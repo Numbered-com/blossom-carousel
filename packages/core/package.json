@@ -1,45 +1,45 @@
 {
-  "name": "@blossom-carousel/core",
-  "version": "0.1.9",
-  "author": "Jesper Vos",
-  "license": "MIT",
-  "description": "A native-scroll-first carousel component for the web.",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jespervos/blossom-carousel"
-  },
-  "bugs": {
-    "url": "https://github.com/jespervos/blossom-carousel/issues"
-  },
-  "homepage": "https://www.blossom-carousel.com",
-  "type": "module",
-  "files": [
-    "dist"
-  ],
-  "main": "dist/blossom-carousel-core.umd.cjs",
-  "module": "dist/blossom-carousel-core.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/blossom-carousel-core.js",
-      "require": "./dist/blossom-carousel-core.umd.cjs"
-    },
-    "./style.css": "./dist/blossom-carousel-core.css"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "tsup": "^6.0.0"
-  },
-  "dependencies": {
-    "vite": "^6.3.3",
-    "vite-plugin-dts": "^4.5.3"
-  }
+	"name": "@numbered/carousel",
+	"version": "0.1.9",
+	"author": "Jesper Vos",
+	"license": "MIT",
+	"description": "A native-scroll-first carousel component for the web.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Numbered-com/carousel"
+	},
+	"bugs": {
+		"url": "https://github.com/Numbered-com/carousel/issues"
+	},
+	"homepage": "https://www.blossom-carousel.com",
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"main": "dist/carousel.umd.cjs",
+	"module": "dist/carousel.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/carousel.js",
+			"require": "./dist/carousel.umd.cjs"
+		},
+		"./style.css": "./dist/carousel.css"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"devDependencies": {
+		"tsup": "^6.0.0"
+	},
+	"dependencies": {
+		"vite": "^6.3.3",
+		"vite-plugin-dts": "^4.5.3"
+	}
 }

@@ -4,13 +4,13 @@ A native-scroll-first carousel enhanced with drag support for Vue.
 
 ## Installation
 
-`npm install @blossom-carousel/vue`
+`npm install @numbered/carousel/vue`
 
 #### Vue
 
 ```javascript
-import { BlossomCarousel } from "@blossom-carousel/vue";
-import "@blossom-carousel/core/style.css";
+import { BlossomCarousel } from "@numbered/carousel/vue";
+import "@numbered/carousel/core/style.css";
 
 const app = createApp({});
 app.component("BlossomCarousel", BlossomCarousel);
@@ -21,8 +21,8 @@ app.component("BlossomCarousel", BlossomCarousel);
 Install globally `plugins/blossom-carousel.js`
 
 ```javascript
-import { BlossomCarousel } from "@blossom-carousel/vue";
-import "@blossom-carousel/core/style.css";
+import { BlossomCarousel } from "@numbered/carousel/vue";
+import "@numbered/carousel/core/style.css";
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component("BlossomCarousel", BlossomCarousel);

@@ -4,13 +4,13 @@ A native-scroll-first carousel for Svelte.
 
 ## Installation
 
-`npm install @blossom-carousel/svelte`
+`npm install @numbered/carousel/svelte`
 
 #### Svelte
 
 ```javascript
-import BlossomCarousel from "@blossom-carousel/svelte";
-import "@blossom-carousel/core/style.css";
+import BlossomCarousel from "@numbered/carousel/svelte";
+import "@numbered/carousel/core/style.css";
 ```
 
 ## Usage

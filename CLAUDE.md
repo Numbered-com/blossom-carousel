@@ -28,7 +28,7 @@ This is a **pnpm workspace monorepo** with the following packages:
 - `packages/web` - Web Component implementation
 - `packages/dev` - Development sandbox (Vue-based)
 
-All framework wrappers depend on `@blossom-carousel/core` and provide thin component layers that initialize/destroy the core Blossom instance.
+All framework wrappers depend on `@numbered/carousel/core` and provide thin component layers that initialize/destroy the core Blossom instance.
 
 ## Development Commands
 

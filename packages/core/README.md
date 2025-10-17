@@ -7,14 +7,14 @@ A native-scroll-first carousel for the web.
 Add the blossom-carousel package to your project.
 
 ```bash
-npm install @blossom-carousel/core
+npm install @numbered/carousel/core
 ```
 
 Then, create a Blossom instance and initialize it.
 
 ```js
-import { Blossom } from "@blossom-carousel/core";
-import "@blossom-carousel/core/style.css";
+import { Blossom } from "@numbered/carousel/core";
+import "@numbered/carousel/core/style.css";
 
 const element = document.querySelector("#my-carousel-element");
 // prepare the Blossom carousel
@@ -35,7 +35,7 @@ const hasMouse = window.matchMedia(
 // We don't need Blossom's engine on touch devices
 if (!hasMouse) return;
 
-const { Blossom } = await import("@blossom-carousel/core");
+const { Blossom } = await import("@numbered/carousel/core");
 
 const element = document.querySelector("#my-carousel-element");
 const blossom = Blossom(element);
@@ -52,10 +52,10 @@ blossom.destroy();
 
 ### Get started in your favorite framework:
 
-- [React](https://www.npmjs.com/package/@blossom-carousel/react)
-- [Vue](https://www.npmjs.com/package/@blossom-carousel/vue)
-- [Svelte](https://www.npmjs.com/package/@blossom-carousel/svelte)
-- [Web Component](https://www.npmjs.com/package/@blossom-carousel/web)
+- [React](https://www.npmjs.com/package/@numbered/carousel/react)
+- [Vue](https://www.npmjs.com/package/@numbered/carousel/vue)
+- [Svelte](https://www.npmjs.com/package/@numbered/carousel/svelte)
+- [Web Component](https://www.npmjs.com/package/@numbered/carousel/web)
 
 ## Examples
 

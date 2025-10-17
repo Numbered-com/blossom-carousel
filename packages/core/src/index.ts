@@ -1,2 +1,2 @@
-export { Blossom, type CarouselOptions } from "./blossom-carousel";
+export { Blossom, type CarouselOptions } from "./carousel";
 import "./style.css";

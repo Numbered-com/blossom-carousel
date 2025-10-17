@@ -1,15 +1,16 @@
 {
-  "compilerOptions": {
-    "moduleResolution": "Node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "types": ["svelte"]
-  },
-  "include": ["src/**/*"]
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"@numbered/carousel": ["../core/src/index.ts"]
+		},
+		"types": ["svelte"]
+	},
+	"include": ["src/**/*"]
 }

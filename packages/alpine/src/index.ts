@@ -1,4 +1,4 @@
-import { Blossom, type CarouselOptions } from '@blossom-carousel/core'
+import { Blossom, type CarouselOptions } from '@numbered/carousel'
 import type { Alpine } from 'alpinejs'
 
 export default function blossomCarousel(Alpine: Alpine) {

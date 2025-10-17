@@ -40,7 +40,7 @@ const handleChange = ({detail}) => {
     <p>Current Slide: {{ currentSlideIndex + 1 }}</p>
     <div class="wrapper">
 			<BlossomCarousel ref="blossom" class="blossom" as="ul" @change="handleChange">
-				<li v-for="i in 12" ref="slides" :key="`slide${i}`" class="slide">
+				<li v-for="i in 8" ref="slides" :key="`slide${i}`" class="slide">
 					<a href="https://www.google.com" target="_blank">
 						<p>{{ i }}</p>
 					</a>

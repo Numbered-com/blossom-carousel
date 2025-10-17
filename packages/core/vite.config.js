@@ -8,7 +8,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
       name: "BlossomCarousel",
-      fileName: "blossom-carousel-core",
+      fileName: "carousel",
     },
   },
 });

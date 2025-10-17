@@ -4,7 +4,7 @@
   export let as = 'div';
   export let load = 'conditional'; // 'always' or 'conditional'
   export let repeat = false;
-  
+
   let root;
   let blossom;
 
@@ -16,7 +16,7 @@
       // overwritten by props.load: 'always'
       if (!hasMouse && load !== "always") return;
 
-      const { Blossom } = await import("@blossom-carousel/core");
+      const { Blossom } = await import("@numbered/carousel");
 
       blossom = Blossom(root, { repeat });
       blossom.init();

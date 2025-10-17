@@ -8,7 +8,7 @@ interface HasOverflow {
 	y: boolean
 }
 
-interface CarouselOptions {
+export interface CarouselOptions {
 	repeat?: boolean
 }
 
@@ -133,7 +133,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 		nativeScroll = !hasMouse && !options?.repeat
 		if (!nativeScroll) {
-			scroller.style['scroll-snap-type'] = 'none'
+			scroller.style.scrollSnapType = 'none'
 		}
 
 		restoreScrollMethods = interceptScrollIntoViewCalls((target) => {
@@ -594,7 +594,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		if (!internal) setIsTicking(false)
 		__scrollingInternally = false
 		if (typeof optionsOrX === 'number') {
-			scrollTo(optionsOrX, y)
+			scrollTo(optionsOrX, y ?? 0)
 		} else {
 			scrollTo(optionsOrX)
 		}
@@ -606,7 +606,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		if (!internal) setIsTicking(false)
 		__scrollingInternally = false
 		if (typeof optionsOrX === 'number') {
-			scrollBy(optionsOrX, y)
+			scrollBy(optionsOrX, y ?? 0)
 		} else {
 			scrollBy(optionsOrX)
 		}

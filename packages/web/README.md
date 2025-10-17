@@ -4,20 +4,20 @@ A native-scroll-first carousel enhanced with drag support for Web.
 
 ## Installation
 
-`npm install @blossom-carousel/web`
+`npm install @numbered/carousel/web`
 
 ```javascript
-import { BlossomCarousel } from "@blossom-carousel/web";
-import "@blossom-carousel/core/style.css";
+import { BlossomCarousel } from "@numbered/carousel/web";
+import "@numbered/carousel/core/style.css";
 ```
 
 #### CDN
 
 ```html
-<script src="https://unpkg.com/@blossom-carousel/web@0.0.11/dist/blossom-carousel-web.umd.cjs"></script>
+<script src="https://unpkg.com/@numbered/carousel/web@0.0.11/dist/blossom-carousel-web.umd.cjs"></script>
 <link
   rel="stylesheet"
-  href="https://unpkg.com/@blossom-carousel/web@0.0.11/dist/blossom-carousel-web.umd.cjs"
+  href="https://unpkg.com/@numbered/carousel/web@0.0.11/dist/blossom-carousel-web.umd.cjs"
 />
 ```
 

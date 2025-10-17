@@ -1,4 +1,4 @@
-import { Blossom } from '@blossom-carousel/core'
+import { Blossom } from '@numbered/carousel'
 import { type ElementType, type ReactNode, type Ref, useEffect, useImperativeHandle, useRef } from 'react'
 
 export interface BlossomCarouselRef {

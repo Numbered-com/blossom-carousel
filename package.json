@@ -1,13 +1,13 @@
 {
 	"name": "@numbered/carousel",
-	"version": "1.1.0",
+	"version": "1.0.0",
 	"private": true,
 	"author": "Jesper Vos",
 	"license": "MIT",
 	"description": "A native-scroll-first carousel component for the web.",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Numbered-com/carousel"
+		"url": "git+https://github.com/Numbered-com/carousel.git"
 	},
 	"bugs": {
 		"url": "https://github.com/Numbered-com/carousel/issues"
@@ -15,12 +15,12 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"dev": "pnpm --filter @blossom-carousel/dev dev",
-		"dev:vue": "pnpm --filter @blossom-carousel/vue dev",
-		"dev:react": "pnpm --filter @blossom-carousel/react dev",
-		"dev:svelte": "pnpm --filter @blossom-carousel/svelte dev",
-		"dev:web": "pnpm --filter @blossom-carousel/web dev",
-		"dev:alpine": "pnpm --filter @blossom-carousel/alpine dev"
+		"dev": "pnpm --filter @numbered/carousel-dev dev",
+		"dev:vue": "pnpm --filter @numbered/carousel-vue dev",
+		"dev:react": "pnpm --filter @numbered/carousel-react dev",
+		"dev:svelte": "pnpm --filter @numbered/carousel-svelte dev",
+		"dev:web": "pnpm --filter @numbered/carousel-web dev",
+		"dev:alpine": "pnpm --filter @numbered/carousel-alpine dev"
 	},
 	"workspaces": [
 		"packages/*"

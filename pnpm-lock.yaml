@@ -17,9 +17,9 @@ importers:
 
   packages/alpine:
     dependencies:
-      '@blossom-carousel/core':
-        specifier: workspace:*
-        version: link:../core
+      '@numbered/carousel':
+        specifier: ^0.1.9
+        version: 0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)
     devDependencies:
       '@types/alpinejs':
         specifier: ^3.13.11
@@ -55,9 +55,9 @@ importers:
 
   packages/dev:
     dependencies:
-      '@blossom-carousel/core':
+      '@numbered/carousel':
         specifier: workspace:*
-        version: link:../core
+        version: link:../..
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.9.3)
@@ -74,9 +74,9 @@ importers:
 
   packages/react:
     dependencies:
-      '@blossom-carousel/core':
-        specifier: ^0.2.0
-        version: 0.2.0(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)
+      '@numbered/carousel':
+        specifier: ^0.1.9
+        version: 0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)
     devDependencies:
       '@types/react':
         specifier: 19.2.2
@@ -118,13 +118,13 @@ importers:
         specifier: ^4.5.3
         version: 4.5.4(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.8.3)(vite@4.5.13(@types/node@24.8.0))
     optionalDependencies:
-      '@blossom-carousel/core':
+      '@numbered/carousel':
         specifier: ^0.1.9
         version: 0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.8.3)
 
   packages/vue:
     dependencies:
-      '@blossom-carousel/core':
+      '@numbered/carousel':
         specifier: ^0.1.9
         version: 0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)
       vue:
@@ -143,9 +143,9 @@ importers:
 
   packages/web:
     dependencies:
-      '@blossom-carousel/core':
+      '@numbered/carousel':
         specifier: ^0.1.9
-        version: 0.1.9(@types/node@24.8.0)(typescript@5.8.3)
+        version: 0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.8.3)
     devDependencies:
       typescript:
         specifier: ^5.0.0
@@ -268,12 +268,6 @@ packages:
   '@babel/types@7.28.4':
     resolution: {integrity: sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q==}
     engines: {node: '>=6.9.0'}
-
-  '@blossom-carousel/core@0.1.9':
-    resolution: {integrity: sha512-B6qUJAXNLeLy4uhpXvU2YDaDGPcYLB5ceSABDErxMEZl1cTkX3DCAwBnP47zbLabmyNrnCCQ4+jZeP9swVjv7g==}
-
-  '@blossom-carousel/core@0.2.0':
-    resolution: {integrity: sha512-S5TeP3qdF47nXLEOOZooQ86EytOlrAjBsnr2aazPhLkzpiCSUUdBewMOStj6pB6CVdxZgsM0fg7ZEleNbm1V4w==}
 
   '@esbuild/aix-ppc64@0.25.3':
     resolution: {integrity: sha512-W8bFfPA8DowP8l//sxjJLSLkD8iEjMc7cBVyP+u4cEv9sM7mdUCkgsj+t0n/BWPFtv7WWCN5Yzj0N6FJNUUqBQ==}
@@ -915,6 +909,9 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
+
+  '@numbered/carousel@0.1.9':
+    resolution: {integrity: sha512-toXM0zP4X8+S6r8/2JfoymXEOBXVloine1Tgf7mNX8aIAewrdnlBzuJNF/zNOQZFitySYuFhY5sEYez3Ktj+EQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -2910,87 +2907,6 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@blossom-carousel/core@0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.8.3)':
-    dependencies:
-      vite: 6.3.5(@types/node@24.8.0)
-      vite-plugin-dts: 4.5.4(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.8.3)(vite@6.3.5(@types/node@24.8.0))
-    transitivePeerDependencies:
-      - '@types/node'
-      - jiti
-      - less
-      - lightningcss
-      - rollup
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - typescript
-      - yaml
-    optional: true
-
-  '@blossom-carousel/core@0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)':
-    dependencies:
-      vite: 6.3.5(@types/node@24.8.0)
-      vite-plugin-dts: 4.5.4(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)(vite@6.3.5(@types/node@24.8.0))
-    transitivePeerDependencies:
-      - '@types/node'
-      - jiti
-      - less
-      - lightningcss
-      - rollup
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - typescript
-      - yaml
-
-  '@blossom-carousel/core@0.1.9(@types/node@24.8.0)(typescript@5.8.3)':
-    dependencies:
-      vite: 6.3.5(@types/node@24.8.0)
-      vite-plugin-dts: 4.5.4(@types/node@24.8.0)(typescript@5.8.3)(vite@6.3.5(@types/node@24.8.0))
-    transitivePeerDependencies:
-      - '@types/node'
-      - jiti
-      - less
-      - lightningcss
-      - rollup
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - typescript
-      - yaml
-
-  '@blossom-carousel/core@0.2.0(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)':
-    dependencies:
-      vite: 6.3.5(@types/node@24.8.0)
-      vite-plugin-dts: 4.5.4(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)(vite@6.3.5(@types/node@24.8.0))
-    transitivePeerDependencies:
-      - '@types/node'
-      - jiti
-      - less
-      - lightningcss
-      - rollup
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - typescript
-      - yaml
-
   '@esbuild/aix-ppc64@0.25.3':
     optional: true
 
@@ -3395,6 +3311,46 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
+
+  '@numbered/carousel@0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.8.3)':
+    dependencies:
+      vite: 6.3.5(@types/node@24.8.0)
+      vite-plugin-dts: 4.5.4(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.8.3)(vite@6.3.5(@types/node@24.8.0))
+    transitivePeerDependencies:
+      - '@types/node'
+      - jiti
+      - less
+      - lightningcss
+      - rollup
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - tsx
+      - typescript
+      - yaml
+
+  '@numbered/carousel@0.1.9(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)':
+    dependencies:
+      vite: 6.3.5(@types/node@24.8.0)
+      vite-plugin-dts: 4.5.4(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)(vite@6.3.5(@types/node@24.8.0))
+    transitivePeerDependencies:
+      - '@types/node'
+      - jiti
+      - less
+      - lightningcss
+      - rollup
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - tsx
+      - typescript
+      - yaml
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -5156,7 +5112,6 @@ snapshots:
       - '@types/node'
       - rollup
       - supports-color
-    optional: true
 
   vite-plugin-dts@4.5.4(@types/node@24.8.0)(rollup@4.46.2)(typescript@5.9.3)(vite@6.3.5(@types/node@24.8.0)):
     dependencies:
@@ -5191,25 +5146,6 @@ snapshots:
       typescript: 5.9.3
     optionalDependencies:
       vite: 7.1.10(@types/node@24.8.0)
-    transitivePeerDependencies:
-      - '@types/node'
-      - rollup
-      - supports-color
-
-  vite-plugin-dts@4.5.4(@types/node@24.8.0)(typescript@5.8.3)(vite@6.3.5(@types/node@24.8.0)):
-    dependencies:
-      '@microsoft/api-extractor': 7.52.10(@types/node@24.8.0)
-      '@rollup/pluginutils': 5.2.0(rollup@4.46.2)
-      '@volar/typescript': 2.4.23
-      '@vue/language-core': 2.2.0(typescript@5.8.3)
-      compare-versions: 6.1.1
-      debug: 4.4.1
-      kolorist: 1.8.0
-      local-pkg: 1.1.1
-      magic-string: 0.30.17
-      typescript: 5.8.3
-    optionalDependencies:
-      vite: 6.3.5(@types/node@24.8.0)
     transitivePeerDependencies:
       - '@types/node'
       - rollup

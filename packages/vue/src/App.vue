@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import BlossomCarousel from "./BlossomCarousel.vue";
-import "@blossom-carousel/core/style.css";
+import "@numbered/carousel/style.css";
 
 const carousel = ref(null);
 </script>

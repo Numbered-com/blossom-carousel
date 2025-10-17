@@ -40,7 +40,7 @@ onMounted(async () => {
   // overwritten by props.load: 'always'
   if (!hasMouse && props.load !== "always") return;
 
-  const { Blossom } = await import("@blossom-carousel/core");
+  const { Blossom } = await import("@numbered/carousel");
 
   blossom = Blossom(root.value, { repeat: props.repeat });
   blossom.init();

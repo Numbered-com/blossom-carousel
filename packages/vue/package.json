@@ -1,69 +1,69 @@
 {
-  "name": "@blossom-carousel/vue",
-  "version": "0.1.9",
-  "author": "Jesper Vos",
-  "license": "MIT",
-  "description": "A native-scroll-first carousel component for Vue.",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jespervos/blossom-carousel"
-  },
-  "bugs": {
-    "url": "https://github.com/jespervos/blossom-carousel/issues"
-  },
-  "homepage": "https://www.blossom-carousel.com",
-  "keywords": [
-    "blossom",
-    "carousel",
-    "slider",
-    "slideshow",
-    "scroll",
-    "scroller",
-    "drag",
-    "dragging",
-    "js",
-    "vanilla",
-    "javascript",
-    "typescript",
-    "web",
-    "html",
-    "css",
-    "svelte",
-    "react",
-    "vue"
-  ],
-  "type": "module",
-  "files": [
-    "dist"
-  ],
-  "main": "dist/blossom-carousel-vue.umd.cjs",
-  "module": "dist/blossom-carousel-vue.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/blossom-carousel-vue.js",
-      "require": "./dist/blossom-carousel-vue.umd.cjs"
-    },
-    "./style.css": "./dist/blossom-carousel-vue.css"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "peerDependencies": {
-    "vue": "^3.5.13"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.4",
-    "vite": "^6.3.5",
-    "vite-plugin-dts": "^4.5.4"
-  },
-  "dependencies": {
-    "@blossom-carousel/core": "^0.1.9"
-  }
+	"name": "@numbered/carousel-vue",
+	"version": "0.1.9",
+	"author": "Jesper Vos",
+	"license": "MIT",
+	"description": "A native-scroll-first carousel component for Vue.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Numbered-com/carousel"
+	},
+	"bugs": {
+		"url": "https://github.com/Numbered-com/carousel/issues"
+	},
+	"homepage": "https://www.blossom-carousel.com",
+	"keywords": [
+		"blossom",
+		"carousel",
+		"slider",
+		"slideshow",
+		"scroll",
+		"scroller",
+		"drag",
+		"dragging",
+		"js",
+		"vanilla",
+		"javascript",
+		"typescript",
+		"web",
+		"html",
+		"css",
+		"svelte",
+		"react",
+		"vue"
+	],
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"main": "dist/blossom-carousel-vue.umd.cjs",
+	"module": "dist/blossom-carousel-vue.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/blossom-carousel-vue.js",
+			"require": "./dist/blossom-carousel-vue.umd.cjs"
+		},
+		"./style.css": "./dist/blossom-carousel-vue.css"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"peerDependencies": {
+		"vue": "^3.5.13"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-vue": "^5.2.4",
+		"vite": "^6.3.5",
+		"vite-plugin-dts": "^4.5.4"
+	},
+	"dependencies": {
+		"@numbered/carousel": "^0.1.9"
+	}
 }
