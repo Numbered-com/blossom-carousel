@@ -44,8 +44,7 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/blossom-carousel-react.js",
 			"require": "./dist/blossom-carousel-react.umd.cjs"
-		},
-		"./style.css": "./dist/blossom-carousel-react.css"
+		}
 	},
 	"publishConfig": {
 		"access": "public"

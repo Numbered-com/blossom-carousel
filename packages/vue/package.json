@@ -44,8 +44,7 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/blossom-carousel-vue.js",
 			"require": "./dist/blossom-carousel-vue.umd.cjs"
-		},
-		"./style.css": "./dist/blossom-carousel-vue.css"
+		}
 	},
 	"publishConfig": {
 		"access": "public"

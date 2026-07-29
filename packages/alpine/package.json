@@ -42,8 +42,7 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/blossom-carousel-alpine.js",
 			"require": "./dist/blossom-carousel-alpine.umd.cjs"
-		},
-		"./style.css": "./dist/blossom-carousel-alpine.css"
+		}
 	},
 	"publishConfig": {
 		"access": "public"

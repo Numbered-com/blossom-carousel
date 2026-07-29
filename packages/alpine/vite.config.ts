@@ -4,11 +4,6 @@ import dts from 'vite-plugin-dts'
 
 export default defineConfig({
 	plugins: [dts()],
-	resolve: {
-		alias: {
-			'@numbered/carousel/style.css': path.resolve(__dirname, '../core/dist/carousel.css'),
-		},
-	},
 	build: {
 		lib: {
 			entry: path.resolve(__dirname, 'src/index.ts'),
