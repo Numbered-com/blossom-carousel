@@ -3,7 +3,7 @@
 	white-space: nowrap;
 	overflow-x: auto;
 	overflow-y: clip;
-	/* No scroll-behavior: smooth — it makes the browser animate the *initial* snap
+	/* No scroll-behavior: smooth: it makes the browser animate the *initial* snap
 	   correction, so the carousel visibly slides into place on first paint. Every scroll
 	   we make passes `behavior` explicitly, so nothing here needs it. */
 	overscroll-behavior-x: contain;

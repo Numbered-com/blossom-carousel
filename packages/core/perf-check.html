@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<title>Blossom — perf check</title>
+		<title>Blossom perf check</title>
 		<style>
 			body { font: 14px/1.5 ui-monospace, monospace; margin: 2rem; }
 			#log { white-space: pre-wrap; }
@@ -34,12 +34,12 @@
 				if (!ok) failures++
 				log.insertAdjacentHTML(
 					'beforeend',
-					`<div class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}  ${label}${detail ? `  — ${detail}` : ''}</div>`,
+					`<div class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}  ${label}${detail ? `  ${detail}` : ''}</div>`,
 				)
 			}
 			const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 			// ResizeObserver delivery happens after rAF callbacks, and sync() then schedules
-			// its own frame — so settling takes more than one turn of the loop.
+			// its own frame, so settling takes more than one turn of the loop.
 			const frame = () => wait(120)
 
 			// Build slides: rich subtree content, which is what made the old recursive walk expensive
@@ -134,7 +134,80 @@
 			)
 			repeatCarousel.destroy()
 
-			// --- 6. destroy() restores the globals it patched ---
+			// --- 6. Nested snap elements under a non-snapping sibling are still found ---
+			const mixed = document.createElement('ul')
+			mixed.className = 'carousel'
+			mixed.id = 'mixed'
+			document.getElementById('stage').append(mixed)
+			mixed.append(richSlide())
+			// A direct child that does NOT snap, wrapping one that does. Placed second so its
+			// snap point is inside the scroll range: if the walk stopped at non-snapping direct
+			// children, index 1 would land on the *third* slide instead of this one.
+			const wrapper = document.createElement('li')
+			wrapper.style.scrollSnapAlign = 'none'
+			const nested = richSlide()
+			nested.style.cssText = 'height:120px;scroll-snap-align:start;background:#ded'
+			wrapper.append(nested)
+			mixed.append(wrapper)
+			for (let i = 0; i < 3; i++) mixed.append(richSlide())
+
+			const mixedCarousel = Blossom(mixed, {})
+			mixedCarousel.init()
+			await frame()
+			mixedCarousel.next()
+			await wait(700)
+			// Offset within the scroll content, so it doesn't move as we scroll
+			const contentOffset = (el) => el.getBoundingClientRect().left - mixed.getBoundingClientRect().left + mixed.scrollLeft
+			const landedOn = [...mixed.children].findIndex((el) => Math.abs(contentOffset(el) - mixed.scrollLeft) < 5)
+			assert(landedOn === 1, 'nested snap element under a non-snapping sibling is reachable', `next() landed on child ${landedOn}, expected 1`)
+
+			// Replacing that nested element must invalidate the cache (childList MO can't see it)
+			const replacement = nested.cloneNode(true)
+			wrapper.replaceChild(replacement, nested)
+			document.getElementById('stage').style.width = '460px'
+			await frame()
+			await wait(200)
+			mixedCarousel.next()
+			await wait(400)
+			assert(!!replacement.isConnected && mixed.contains(replacement), 'replaced nested slide is re-resolved, not left detached')
+
+			// --- 7. Removing slides keeps the index addressable ---
+			while (mixed.children.length > 2) mixed.lastElementChild.remove()
+			await frame()
+			await wait(200)
+			const idxAfterShrink = mixedCarousel.currentIndex()
+			mixedCarousel.prev()
+			await wait(500)
+			assert(idxAfterShrink <= 1, 'index is clamped when slides are removed', `index ${idxAfterShrink}`)
+			assert(mixedCarousel.currentIndex() <= 1, 'prev() still works after the list shrinks', `index ${mixedCarousel.currentIndex()}`)
+			mixedCarousel.destroy()
+
+			// --- 8. destroy() then init() fully revives the instance ---
+			const revive = document.createElement('ul')
+			revive.className = 'carousel'
+			document.getElementById('stage').append(revive)
+			for (let i = 0; i < 5; i++) revive.append(richSlide())
+			const reviveCarousel = Blossom(revive, {})
+			reviveCarousel.init()
+			await frame()
+			reviveCarousel.next()
+			await wait(200)
+			reviveCarousel.destroy() // destroy mid-animation, while isTicking is true
+			reviveCarousel.init()
+			await frame()
+			const beforeRevive = reviveCarousel.currentIndex()
+			reviveCarousel.next()
+			await wait(700)
+			assert(reviveCarousel.currentIndex() !== beforeRevive, 'next() still animates after destroy() mid-tick then init()', `${beforeRevive} -> ${reviveCarousel.currentIndex()}`)
+
+			// Double init() must not strand observers
+			reviveCarousel.init()
+			reviveCarousel.init()
+			await frame()
+			reviveCarousel.destroy()
+			assert(!Object.hasOwn(revive, 'scrollTo'), 'double init() then one destroy() leaves no override behind')
+
+			// --- 9. destroy() restores the globals it patched ---
 			const beforeDestroy = Element.prototype.scrollIntoView
 			carousel.destroy()
 			assert(Element.prototype.scrollIntoView === beforeDestroy, 'scrollIntoView stays patched while another instance lives')

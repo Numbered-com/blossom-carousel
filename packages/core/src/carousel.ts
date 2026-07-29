@@ -142,7 +142,9 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	let structureDirty = false
 	let geometryDirty = false
 	let syncScheduled = false
-	let destroyed = false
+	let initialised = false
+	let candidatesResolved = false
+	let deepCandidates = false
 	let hasSnap = false
 	let hasMouse = false
 	let nativeScroll = true
@@ -150,7 +152,11 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	let dir = 1
 
 	function init() {
-		destroyed = false
+		// Re-entrant: a second init() without destroy() would otherwise strand the previous
+		// observers, listeners and scrollIntoView subscriber.
+		if (initialised) destroy()
+		initialised = true
+		installScrollOverrides()
 		scroller?.setAttribute('blossom-carousel', 'true')
 		slides = Array.from(scroller.children) as HTMLElement[]
 
@@ -203,17 +209,33 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		mutationObserver?.disconnect()
 		if (raf) cancelAnimationFrame(raf)
 		raf = null
+		// Reset, or a later setIsTicking(true) sees a stale `true` and never restarts the loop
+		isTicking = false
 		// A pending sync can't be cancelled, so make it a no-op instead
 		structureDirty = geometryDirty = false
-		destroyed = true
+		candidatesResolved = false
+		initialised = false
+
+		velocity.x = velocity.y = 0
+		rubberBandOffset = 0
 
 		window.removeEventListener('keydown', onKeydown)
 		scroller.removeEventListener('scroll', onScroll)
+		// Removes the pointer listeners the proxy installed, and lets a later init()
+		// re-add them once it re-detects overflow.
+		hasOverflow.x = false
+		hasOverflow.y = false
 
-		// Drop the own-property overrides so the prototype methods take over again
-		delete (scroller as Partial<HTMLElement>).scrollTo
-		delete (scroller as Partial<HTMLElement>).scrollBy
+		// Undo everything init() wrote. Notably scrollSnapType: leaving our own 'none' on
+		// the element makes a later init() read it back as the authored value, conclude the
+		// carousel doesn't snap, and come up with no snap points at all.
+		scroller.style.scrollSnapType = ''
+		scroller.style.transform = ''
+		scroller.style.removeProperty('--snap-type')
+		scroller.removeAttribute('has-repeat')
+		scroller.removeAttribute('has-snap')
 
+		restoreScrollOverrides?.()
 		restoreScrollMethods?.()
 	}
 
@@ -223,7 +245,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 		// Coalesce, but flush in a microtask rather than a frame. ResizeObserver callbacks
 		// are delivered after rAF and *before* paint, so deferring to the next frame would
-		// let one frame paint at the wrong scroll position — a visible blink on open.
+		// let one frame paint at the wrong scroll position, a visible blink on open.
 		if (syncScheduled) return
 		syncScheduled = true
 		queueMicrotask(() => {
@@ -235,20 +257,27 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	}
 
 	function sync(structureChanged: boolean): void {
-		if (!scroller || destroyed) return
+		if (!scroller || !initialised) return
 
-		const resolveStructure = structureChanged || !snapCandidates.length
+		const widthChanged = scroller.clientWidth !== scrollerWidth
+		const resolveStructure =
+			structureChanged ||
+			!candidatesResolved ||
+			// A width change can flip a media query, changing which elements snap and how
+			widthChanged ||
+			// MutationObserver is childList-only, so a replaced *nested* slide is invisible
+			// to it. Cheap to detect, and only possible when we resolved deep candidates.
+			(deepCandidates && snapCandidates.some(({ el }) => !scroller.contains(el)))
 
 		// Bail before touching anything if our own box is unchanged and the child list is
 		// intact. This is the common case: the ResizeObserver watches the parent, so it
 		// fires for page layout changes that never affect the carousel at all.
 		// Repeat mode translates slides, which skews scrollWidth, so its measurements are
-		// only trustworthy once the translations are cleared — no early bail there.
+		// only trustworthy once the translations are cleared, so no early bail there.
 		if (
 			!resolveStructure &&
 			!options?.repeat &&
 			scroller.scrollWidth === scrollerScrollWidth &&
-			scroller.clientWidth === scrollerWidth &&
 			scroller.scrollHeight === scrollerScrollHeight &&
 			scroller.clientHeight === scrollerHeight
 		) {
@@ -283,11 +312,21 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 		// Which elements snap only changes when the child list changes; their positions
 		// change on every resize. Resolving identity is the expensive half, so cache it.
-		if (resolveStructure) snapCandidates = hasSnap ? findSnapCandidates() : []
+		if (resolveStructure) {
+			snapCandidates = hasSnap ? findSnapCandidates() : []
+			candidatesResolved = true
+		}
 		measureSnapPoints()
 
+		// Slides can disappear from under us; keep the index addressable or prev()/next()
+		// would compute another out-of-range index and stall permanently.
+		if (snapPoints.length && currentIndex.value > snapPoints.length - 1) {
+			currentIndex.value = snapPoints.length - 1
+		}
+
+		// Repositioning mid-drag would yank the carousel out from under the pointer
 		const point = snapPoints[currentIndex.value]
-		if (point !== undefined) {
+		if (point !== undefined && !isDragging) {
 			target.x = virtualScroll.x = point
 			scroller.scrollTo({ left: point, behavior: 'instant' })
 		}
@@ -296,10 +335,14 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		}
 	}
 
+	// Walks descendants but stops at the first snap-aligned element on each branch, so a
+	// slide's own rich content is never descended into. The expensive case is a carousel
+	// whose slides don't snap at all; that's why the result is cached and only re-resolved
+	// when the structure (or a media query, via a width change) could have altered it.
 	function findSnapCandidates(): { el: HTMLElement; align: string }[] {
 		const found: { el: HTMLElement; align: string }[] = []
 
-		const collect = (children: HTMLCollection, deep: boolean) => {
+		const collect = (children: HTMLCollection) => {
 			for (const node of children) {
 				// scroll-snap-align is `<block> <inline>`; the inline value drives horizontal snapping
 				const parts = window.getComputedStyle(node).scrollSnapAlign.split(' ')
@@ -307,16 +350,14 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 				if (align !== 'none') {
 					found.push({ el: node as HTMLElement, align })
-				} else if (deep && node.children.length) {
-					collect(node.children, true)
+					continue
 				}
+				if (node.children.length) collect(node.children)
 			}
 		}
 
-		// Slides are direct children in virtually every carousel. Only pay for a full
-		// subtree walk when that assumption doesn't hold.
-		collect(scroller.children, false)
-		if (!found.length) collect(scroller.children, true)
+		collect(scroller.children)
+		deepCandidates = found.some(({ el }) => el.parentElement !== scroller)
 
 		return found
 	}
@@ -541,7 +582,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 			const el = snapElements[i]
 			const basePoint = snapPoints[i] ?? 0
 			const alignement = snapAlignments[i] ?? 'start'
-			// snapWidths is measured during sync — reading clientWidth here would force a
+			// snapWidths is measured during sync; reading clientWidth here would force a
 			// layout on every frame, right in the middle of the translate writes below.
 			const width = snapWidths[i] ?? 0
 			const dx = alignement === 'start' ? 0 : alignement === 'end' ? (scrollerWidth - width) / 2 : (-scrollerWidth + width) / 2
@@ -580,7 +621,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 	function setIsTicking(bool: boolean): void {
 		if (!scroller) return
-		// Called on every pointermove past the drag threshold — don't rewrite the attribute.
+		// Called on every pointermove past the drag threshold, so don't rewrite the attribute.
 		if (bool === isTicking) return
 
 		if (bool && !isTicking) {
@@ -643,13 +684,15 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 	function isSettled(): boolean {
 		if (isDragging) return false
-		return (
-			Math.abs(velocity.x) < SETTLE_EPSILON &&
-			Math.abs(velocity.y) < SETTLE_EPSILON &&
-			Math.abs(target.x - virtualScroll.x) < SETTLE_EPSILON &&
-			Math.abs(target.y - virtualScroll.y) < SETTLE_EPSILON &&
-			Math.abs(rubberBandOffset) < SETTLE_EPSILON
-		)
+		// Only axes that tick can converge. Checking an axis that lost its overflow would
+		// keep the loop alive forever on whatever stale velocity it was left holding.
+		if (hasOverflow.x && !isAxisSettled('x')) return false
+		if (hasOverflow.y && !isAxisSettled('y')) return false
+		return Math.abs(rubberBandOffset) < SETTLE_EPSILON
+	}
+
+	function isAxisSettled(axis: 'x' | 'y'): boolean {
+		return Math.abs(velocity[axis]) < SETTLE_EPSILON && Math.abs(target[axis] - virtualScroll[axis]) < SETTLE_EPSILON
 	}
 
 	let rubberBandOffset = 0
@@ -696,30 +739,40 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	 ******************************/
 
 	let __scrollingInternally = false
+	let restoreScrollOverrides: (() => void) | null = null
 
-	const scrollTo = scroller.scrollTo.bind(scroller)
-	scroller.scrollTo = ((optionsOrX?: ScrollToOptions | number, y?: number) => {
-		const internal = __scrollingInternally === true
-		if (!internal) setIsTicking(false)
-		__scrollingInternally = false
-		if (typeof optionsOrX === 'number') {
-			scrollTo(optionsOrX, y ?? 0)
-		} else {
-			scrollTo(optionsOrX)
-		}
-	}) as typeof scroller.scrollTo
+	// Installed per init() and undone per destroy(), so the instance survives a
+	// destroy/init cycle and hands back any override the element already carried.
+	function installScrollOverrides(): void {
+		restoreScrollOverrides?.()
 
-	const scrollBy = scroller.scrollBy.bind(scroller)
-	scroller.scrollBy = ((optionsOrX?: ScrollToOptions | number, y?: number) => {
-		const internal = __scrollingInternally === true
-		if (!internal) setIsTicking(false)
-		__scrollingInternally = false
-		if (typeof optionsOrX === 'number') {
-			scrollBy(optionsOrX, y ?? 0)
-		} else {
-			scrollBy(optionsOrX)
+		const originals = (['scrollTo', 'scrollBy'] as const).map((name) => {
+			const native = scroller[name].bind(scroller)
+			const had = Object.hasOwn(scroller, name)
+			const previous = scroller[name]
+
+			scroller[name] = ((optionsOrX?: ScrollToOptions | number, y?: number) => {
+				const internal = __scrollingInternally === true
+				if (!internal) setIsTicking(false)
+				__scrollingInternally = false
+				if (typeof optionsOrX === 'number') {
+					native(optionsOrX, y ?? 0)
+				} else {
+					native(optionsOrX)
+				}
+			}) as typeof scroller.scrollTo
+
+			return { name, had, previous }
+		})
+
+		restoreScrollOverrides = () => {
+			for (const { name, had, previous } of originals) {
+				if (had) scroller[name] = previous
+				else delete (scroller as Partial<HTMLElement>)[name]
+			}
+			restoreScrollOverrides = null
 		}
-	}) as typeof scroller.scrollBy
+	}
 
 	/******************************
 	 ********* UTILS **************
