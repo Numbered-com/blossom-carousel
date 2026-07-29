@@ -213,7 +213,25 @@
 			reviveCarousel.destroy()
 			assert(!Object.hasOwn(revive, 'scrollTo'), 'double init() then one destroy() leaves no override behind')
 
-			// --- 9. destroy() restores the globals it patched ---
+			// --- 9. destroy() undoes everything it wrote to the DOM ---
+			const undoEl = document.createElement('ul')
+			undoEl.className = 'carousel'
+			undoEl.style.scrollSnapType = 'x proximity'
+			document.getElementById('stage').append(undoEl)
+			for (let i = 0; i < 6; i++) undoEl.append(richSlide())
+			const undoCarousel = Blossom(undoEl, { repeat: true })
+			undoCarousel.init()
+			await frame()
+			undoCarousel.next()
+			await wait(400)
+			undoCarousel.destroy()
+			assert(
+				[...undoEl.children].every((el) => !el.style.translate),
+				'destroy() in repeat mode clears slide translations',
+			)
+			assert(undoEl.style.scrollSnapType === 'x', 'destroy() restores the authored inline scroll-snap-type', `got "${undoEl.style.scrollSnapType}"`)
+
+			// --- 10. destroy() restores the globals it patched ---
 			const beforeDestroy = Element.prototype.scrollIntoView
 			carousel.destroy()
 			assert(Element.prototype.scrollIntoView === beforeDestroy, 'scrollIntoView stays patched while another instance lives')

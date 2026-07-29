@@ -7,13 +7,14 @@ interface Point {
 // so destroying instances out of init order can't leave a stale wrapper installed.
 const scrollIntoViewSubscribers = new Set<(target: Element) => void>()
 let originalScrollIntoView: typeof Element.prototype.scrollIntoView | null = null
+let patchedScrollIntoView: typeof Element.prototype.scrollIntoView | null = null
 
 function interceptScrollIntoViewCalls(onExternalScroll: (target: Element) => void): () => void {
 	scrollIntoViewSubscribers.add(onExternalScroll)
 
 	if (!originalScrollIntoView) {
 		originalScrollIntoView = Element.prototype.scrollIntoView
-		Element.prototype.scrollIntoView = function (arg?: boolean | ScrollIntoViewOptions): void {
+		patchedScrollIntoView = Element.prototype.scrollIntoView = function (arg?: boolean | ScrollIntoViewOptions): void {
 			for (const subscriber of scrollIntoViewSubscribers) subscriber(this)
 			originalScrollIntoView?.call(this, arg)
 		}
@@ -22,8 +23,13 @@ function interceptScrollIntoViewCalls(onExternalScroll: (target: Element) => voi
 	return () => {
 		scrollIntoViewSubscribers.delete(onExternalScroll)
 		if (scrollIntoViewSubscribers.size === 0 && originalScrollIntoView) {
-			Element.prototype.scrollIntoView = originalScrollIntoView
+			// Only restore if we're still the installed patch; if another library patched
+			// over ours, leave theirs in place (our wrapper just delegates once we're empty).
+			if (Element.prototype.scrollIntoView === patchedScrollIntoView) {
+				Element.prototype.scrollIntoView = originalScrollIntoView
+			}
 			originalScrollIntoView = null
+			patchedScrollIntoView = null
 		}
 	}
 }
@@ -78,9 +84,11 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 				if (target.x || target.y) {
 					scroller.setAttribute('has-overflow', 'true')
-					scroller.addEventListener('touchstart', onPointerDown, { passive: false })
-					scroller.addEventListener('pointerdown', onPointerDown, { passive: false })
-					scroller.addEventListener('wheel', onWheel, { passive: false })
+					// Passive: none of these handlers ever preventDefault, and non-passive
+					// wheel/touch listeners block the compositor scroll thread.
+					scroller.addEventListener('touchstart', onPointerDown, { passive: true })
+					scroller.addEventListener('pointerdown', onPointerDown, { passive: true })
+					scroller.addEventListener('wheel', onWheel, { passive: true })
 				} else {
 					scroller.removeAttribute('has-overflow')
 					scroller.removeEventListener('touchstart', onPointerDown)
@@ -136,11 +144,9 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	let slides: HTMLElement[] = []
 	let resizeObserver: ResizeObserver | null = null
 	let mutationObserver: MutationObserver | null = null
-	// Observers are coalesced into these flags and flushed once per frame:
-	// structure = the child list changed, re-resolve which elements snap.
-	// geometry = something resized, re-measure positions only.
+	// Observer callbacks are coalesced into one sync per microtask; structureDirty
+	// records whether any of them implied a child-list change.
 	let structureDirty = false
-	let geometryDirty = false
 	let syncScheduled = false
 	let initialised = false
 	let candidatesResolved = false
@@ -148,6 +154,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	let hasSnap = false
 	let hasMouse = false
 	let nativeScroll = true
+	let previousInlineSnapType = ''
 	let restoreScrollMethods: () => void
 	let dir = 1
 
@@ -173,6 +180,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		hasMouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
 		nativeScroll = !hasMouse && !options?.repeat
+		previousInlineSnapType = scroller.style.scrollSnapType
 		if (!nativeScroll) {
 			scroller.style.scrollSnapType = 'none'
 		}
@@ -212,7 +220,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		// Reset, or a later setIsTicking(true) sees a stale `true` and never restarts the loop
 		isTicking = false
 		// A pending sync can't be cancelled, so make it a no-op instead
-		structureDirty = geometryDirty = false
+		structureDirty = false
 		candidatesResolved = false
 		initialised = false
 
@@ -221,6 +229,11 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 		window.removeEventListener('keydown', onKeydown)
 		scroller.removeEventListener('scroll', onScroll)
+		// A destroy mid-drag would otherwise leave these window listeners live until
+		// the next pointerup, still mutating this instance's state.
+		removePointerListeners()
+		isDragging = false
+		scroller.classList.remove('blossom-dragging')
 		// Removes the pointer listeners the proxy installed, and lets a later init()
 		// re-add them once it re-detects overflow.
 		hasOverflow.x = false
@@ -229,7 +242,8 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		// Undo everything init() wrote. Notably scrollSnapType: leaving our own 'none' on
 		// the element makes a later init() read it back as the authored value, conclude the
 		// carousel doesn't snap, and come up with no snap points at all.
-		scroller.style.scrollSnapType = ''
+		clearTranslations()
+		scroller.style.scrollSnapType = previousInlineSnapType
 		scroller.style.transform = ''
 		scroller.style.removeProperty('--snap-type')
 		scroller.removeAttribute('has-repeat')
@@ -241,7 +255,6 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 
 	function scheduleSync(structure: boolean): void {
 		if (structure) structureDirty = true
-		else geometryDirty = true
 
 		// Coalesce, but flush in a microtask rather than a frame. ResizeObserver callbacks
 		// are delivered after rAF and *before* paint, so deferring to the next frame would
@@ -251,7 +264,7 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 		queueMicrotask(() => {
 			syncScheduled = false
 			const structureChanged = structureDirty
-			structureDirty = geometryDirty = false
+			structureDirty = false
 			sync(structureChanged)
 		})
 	}
@@ -546,7 +559,6 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	}
 
 	function clearTranslations(): void {
-		for (const el of snapElements) el.style.translate = ''
 		for (const el of appliedTranslate.keys()) el.style.translate = ''
 		appliedTranslate.clear()
 	}
@@ -651,8 +663,6 @@ export const Blossom = (scroller: HTMLElement, options: CarouselOptions) => {
 	function tick(t: number): void {
 		frameDelta = t - lastTick
 		lastTick = t
-
-		if (!scroller) return
 
 		if (hasOverflow.x) handleAxisTick('x')
 		if (hasOverflow.y) handleAxisTick('y')

@@ -5,6 +5,7 @@ import "../../core/src/style.css";
 
 const blossom = ref(null);
 const currentSlideIndex = ref(0);
+const repeat = ref(false);
 
 function add() {
   const slide = document.createElement("li");
@@ -39,7 +40,7 @@ const handleChange = ({detail}) => {
     <h1>Blossom Dev</h1>
     <p>Current Slide: {{ currentSlideIndex + 1 }}</p>
     <div class="wrapper">
-			<BlossomCarousel ref="blossom" class="blossom" as="ul" @change="handleChange">
+			<BlossomCarousel ref="blossom" :key="`repeat${repeat}`" class="blossom" as="ul" :repeat="repeat" @change="handleChange">
 				<li v-for="i in 8" ref="slides" :key="`slide${i}`" class="slide">
 					<a href="https://www.google.com" target="_blank">
 						<p>{{ i }}</p>
@@ -61,6 +62,7 @@ const handleChange = ({detail}) => {
     <div class="controls">
       <button @click="prev">prev slide</button>
       <button @click="next">next slide</button>
+      <button @click="repeat = !repeat">loop: {{ repeat ? "on" : "off" }}</button>
     </div>
   </div>
 </template>
