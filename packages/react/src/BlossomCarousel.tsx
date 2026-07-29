@@ -32,8 +32,7 @@ export default function BlossomCarousel({
 	useEffect(() => {
 		if (!localRef.current) return
 
-		const hasMouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches
-		if (!hasMouse && load !== 'always') return
+		if (load !== 'always' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
 
 		const blossom = Blossom(localRef.current, { repeat })
 		blossomRef.current = blossom
