@@ -1,8 +1,0 @@
-packages:
-  - "packages/core"
-  - "packages/vue"
-  - "packages/react"
-  - "packages/svelte"
-  - "packages/web"
-  - "packages/alpine"
-  - "packages/dev"

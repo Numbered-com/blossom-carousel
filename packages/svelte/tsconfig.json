@@ -7,8 +7,7 @@
 		"resolveJsonModule": true,
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["src/*"],
-			"@numbered/carousel": ["../core/src/index.ts"]
+			"@/*": ["src/*"]
 		},
 		"types": ["svelte"]
 	},

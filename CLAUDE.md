@@ -18,7 +18,7 @@ Blossom Carousel is a native-scroll-first carousel component library with physic
 
 ## Repository Structure
 
-This is a **pnpm workspace monorepo** with the following packages:
+This is a **bun workspace monorepo** with the following packages:
 
 - `packages/core` - Core TypeScript library with Vite build ([blossom-carousel.ts](packages/core/src/blossom-carousel.ts:1))
 - `packages/react` - React 19 wrapper component
@@ -32,25 +32,28 @@ All framework wrappers depend on `@numbered/carousel/core` and provide thin comp
 
 ## Development Commands
 
-Use pnpm for all package management:
+Use bun for all package management:
 
 ```bash
 # Install dependencies
-pnpm install
+bun install
 
 # Development servers (runs specific package dev server)
-pnpm dev              # Run dev sandbox (packages/dev)
-pnpm dev:react        # Run React package dev server
-pnpm dev:vue          # Run Vue package dev server
-pnpm dev:svelte       # Run Svelte package dev server
-pnpm dev:alpine       # Run Alpine.js package dev server
-pnpm dev:web          # Run Web Component package dev server
+bun run dev           # Run dev sandbox (packages/dev)
+bun run dev:react     # Run React package dev server
+bun run dev:vue       # Run Vue package dev server
+bun run dev:svelte    # Run Svelte package dev server
+bun run dev:alpine    # Run Alpine.js package dev server
+bun run dev:web       # Run Web Component package dev server
 
 # Build individual packages
-cd packages/core && pnpm build
-cd packages/react && pnpm build
+cd packages/core && bun run build
+cd packages/react && bun run build
 # etc...
 ```
+
+TypeScript is pinned to 6.x via a root `overrides` entry: `unplugin-dts` (behind
+`vite-plugin-dts` v5) needs the TS6 programmatic compiler API, which TS 7 dropped.
 
 ## Core Architecture
 
