@@ -32,8 +32,7 @@ export default function BlossomCarousel({
 	useEffect(() => {
 		if (!localRef.current) return
 
-		const hasMouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches
-		if (!hasMouse && load !== 'always') return
+		if (load !== 'always' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
 
 		const blossom = Blossom(localRef.current, { repeat })
 		blossomRef.current = blossom
@@ -43,7 +42,7 @@ export default function BlossomCarousel({
 			blossom.destroy()
 			blossomRef.current = null
 		}
-	}, [repeat])
+	}, [repeat, load])
 
 	useEffect(() => {
 		if (!localRef.current || !onChange) return
@@ -69,8 +68,14 @@ export default function BlossomCarousel({
 		[],
 	)
 
+	const setRefs = (node: HTMLElement | null) => {
+		localRef.current = node
+		if (typeof elementRef === 'function') elementRef(node)
+		else if (elementRef) (elementRef as { current: HTMLElement | null }).current = node
+	}
+
 	return (
-		<Component ref={localRef} blossom-carousel='true' {...props}>
+		<Component ref={setRefs} blossom-carousel='true' {...props}>
 			{children}
 		</Component>
 	)

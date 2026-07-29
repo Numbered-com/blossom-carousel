@@ -33,7 +33,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"test": "vite --open /tests/perf-check.html"
 	},
 	"devDependencies": {
 		"tsup": "^6.0.0"

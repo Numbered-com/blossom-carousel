@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Blossom perf check</title>
+		<style>
+			body { font: 14px/1.5 ui-monospace, monospace; margin: 2rem; }
+			#log { white-space: pre-wrap; }
+			.intro { max-width: 60ch; color: #555; }
+			.pass { color: #0a0; }
+			.fail { color: #c00; font-weight: bold; }
+			.stage { width: 600px; }
+			.carousel { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; }
+			.carousel > * { flex: 0 0 200px; height: 120px; scroll-snap-align: start; background: #dde; }
+			/* Deep case: snap lives on grandchildren, not direct children */
+			#deep > * { scroll-snap-align: none; background: none; }
+			#deep .slide { height: 120px; scroll-snap-align: start; background: #edd; }
+		</style>
+	</head>
+	<body>
+		<h1>Blossom perf check</h1>
+		<p class="intro">
+			Run with <code>pnpm test</code> in <code>packages/core</code>. Everything runs on load and the page title
+			reports the result. Guards against layout thrash, a ticker that never settles, and lifecycle leaks
+			regressing again. Needs a real browser, so it is not part of any CI run.
+		</p>
+		<div class="stage" id="stage">
+			<ul class="carousel" id="flat"></ul>
+			<ul class="carousel" id="deep"></ul>
+			<ul class="carousel" id="repeat"></ul>
+		</div>
+		<div id="log"></div>
+
+		<script type="module">
+			import { Blossom } from '/src/carousel.ts'
+
+			const log = document.getElementById('log')
+			let failures = 0
+			const assert = (ok, label, detail = '') => {
+				if (!ok) failures++
+				log.insertAdjacentHTML(
+					'beforeend',
+					`<div class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}  ${label}${detail ? `  ${detail}` : ''}</div>`,
+				)
+			}
+			const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+			// ResizeObserver delivery happens after rAF callbacks, and sync() then schedules
+			// its own frame, so settling takes more than one turn of the loop.
+			const frame = () => wait(120)
+
+			// Build slides: rich subtree content, which is what made the old recursive walk expensive
+			const richSlide = () => {
+				const li = document.createElement('li')
+				li.innerHTML = '<div><p><span><b>x</b></span></p><p><span>y</span></p><p><span>z</span></p></div>'
+				return li
+			}
+			for (let i = 0; i < 6; i++) document.getElementById('flat').append(richSlide())
+			for (let i = 0; i < 6; i++) {
+				const wrapper = document.createElement('li')
+				const inner = richSlide()
+				inner.className = 'slide'
+				wrapper.append(inner)
+				document.getElementById('deep').append(wrapper)
+			}
+
+			// Count getComputedStyle calls
+			const nativeGCS = window.getComputedStyle
+			let gcsCount = 0
+			window.getComputedStyle = function (...args) {
+				gcsCount++
+				return nativeGCS.apply(window, args)
+			}
+
+			const flat = document.getElementById('flat')
+			const deep = document.getElementById('deep')
+			const carousel = Blossom(flat, {})
+			const deepCarousel = Blossom(deep, {})
+			carousel.init()
+			deepCarousel.init()
+			await frame()
+
+			// Count how often the ticker writes, to detect a loop that never settles
+			const patchedScrollTo = flat.scrollTo.bind(flat)
+			let tickWrites = 0
+			flat.scrollTo = (...args) => {
+				tickWrites++
+				return patchedScrollTo(...args)
+			}
+
+			// --- 1. Unrelated layout change: ResizeObserver fires, carousel metrics unchanged ---
+			gcsCount = 0
+			document.getElementById('stage').style.paddingBottom = '80px'
+			await frame()
+			assert(gcsCount < 10, 'unrelated layout change stays under 10 getComputedStyle calls', `got ${gcsCount}`)
+
+			// --- 2. A real width change still recomputes ---
+			gcsCount = 0
+			document.getElementById('stage').style.width = '400px'
+			await frame()
+			assert(gcsCount > 0, 'a real width change does recompute snap points', `got ${gcsCount}`)
+
+			// --- 3. Snap points resolve on direct children, and via fallback on grandchildren ---
+			carousel.next()
+			await wait(600)
+			assert(carousel.currentIndex() > 0, 'next() advances on direct-child slides', `index ${carousel.currentIndex()}`)
+
+			deepCarousel.next()
+			await wait(600)
+			assert(deepCarousel.currentIndex() > 0, 'deep fallback finds snap-aligned grandchildren', `index ${deepCarousel.currentIndex()}`)
+
+			// --- 4. The RAF loop settles instead of running forever ---
+			carousel.next()
+			await wait(1200)
+			const settledAt = tickWrites
+			await wait(800)
+			assert(tickWrites === settledAt, 'ticker stops after motion settles', `${tickWrites - settledAt} extra frames after settling`)
+
+			// --- 5. Repeat mode: wraps around, and translations survive a resize ---
+			for (let i = 0; i < 6; i++) document.getElementById('repeat').append(richSlide())
+			const repeatEl = document.getElementById('repeat')
+			const repeatCarousel = Blossom(repeatEl, { repeat: true })
+			repeatCarousel.init()
+			await frame()
+
+			for (let i = 0; i < 8; i++) {
+				repeatCarousel.next()
+				await wait(400)
+			}
+			const translated = [...repeatEl.children].filter((el) => el.style.translate).length
+			assert(translated > 0, 'repeat mode translates slides', `${translated}/${repeatEl.children.length} translated`)
+			assert(repeatCarousel.currentIndex() < repeatEl.children.length, 'repeat mode wraps the index instead of running off the end', `index ${repeatCarousel.currentIndex()}`)
+
+			gcsCount = 0
+			document.getElementById('stage').style.width = '500px'
+			await frame()
+			await wait(300)
+			assert(
+				[...repeatEl.children].every((el) => !Number.isNaN(Number.parseFloat(el.style.translate || '0'))),
+				'repeat translations stay numeric across a resize',
+			)
+			repeatCarousel.destroy()
+
+			// --- 6. Nested snap elements under a non-snapping sibling are still found ---
+			const mixed = document.createElement('ul')
+			mixed.className = 'carousel'
+			mixed.id = 'mixed'
+			document.getElementById('stage').append(mixed)
+			mixed.append(richSlide())
+			// A direct child that does NOT snap, wrapping one that does. Placed second so its
+			// snap point is inside the scroll range: if the walk stopped at non-snapping direct
+			// children, index 1 would land on the *third* slide instead of this one.
+			const wrapper = document.createElement('li')
+			wrapper.style.scrollSnapAlign = 'none'
+			const nested = richSlide()
+			nested.style.cssText = 'height:120px;scroll-snap-align:start;background:#ded'
+			wrapper.append(nested)
+			mixed.append(wrapper)
+			for (let i = 0; i < 3; i++) mixed.append(richSlide())
+
+			const mixedCarousel = Blossom(mixed, {})
+			mixedCarousel.init()
+			await frame()
+			mixedCarousel.next()
+			await wait(700)
+			// Offset within the scroll content, so it doesn't move as we scroll
+			const contentOffset = (el) => el.getBoundingClientRect().left - mixed.getBoundingClientRect().left + mixed.scrollLeft
+			const landedOn = [...mixed.children].findIndex((el) => Math.abs(contentOffset(el) - mixed.scrollLeft) < 5)
+			assert(landedOn === 1, 'nested snap element under a non-snapping sibling is reachable', `next() landed on child ${landedOn}, expected 1`)
+
+			// Replacing that nested element must invalidate the cache (childList MO can't see it)
+			const replacement = nested.cloneNode(true)
+			wrapper.replaceChild(replacement, nested)
+			document.getElementById('stage').style.width = '460px'
+			await frame()
+			await wait(200)
+			mixedCarousel.next()
+			await wait(400)
+			assert(!!replacement.isConnected && mixed.contains(replacement), 'replaced nested slide is re-resolved, not left detached')
+
+			// --- 7. Removing slides keeps the index addressable ---
+			while (mixed.children.length > 2) mixed.lastElementChild.remove()
+			await frame()
+			await wait(200)
+			const idxAfterShrink = mixedCarousel.currentIndex()
+			mixedCarousel.prev()
+			await wait(500)
+			assert(idxAfterShrink <= 1, 'index is clamped when slides are removed', `index ${idxAfterShrink}`)
+			assert(mixedCarousel.currentIndex() <= 1, 'prev() still works after the list shrinks', `index ${mixedCarousel.currentIndex()}`)
+			mixedCarousel.destroy()
+
+			// --- 8. destroy() then init() fully revives the instance ---
+			const revive = document.createElement('ul')
+			revive.className = 'carousel'
+			document.getElementById('stage').append(revive)
+			for (let i = 0; i < 5; i++) revive.append(richSlide())
+			const reviveCarousel = Blossom(revive, {})
+			reviveCarousel.init()
+			await frame()
+			reviveCarousel.next()
+			await wait(200)
+			reviveCarousel.destroy() // destroy mid-animation, while isTicking is true
+			reviveCarousel.init()
+			await frame()
+			const beforeRevive = reviveCarousel.currentIndex()
+			reviveCarousel.next()
+			await wait(700)
+			assert(reviveCarousel.currentIndex() !== beforeRevive, 'next() still animates after destroy() mid-tick then init()', `${beforeRevive} -> ${reviveCarousel.currentIndex()}`)
+
+			// Double init() must not strand observers
+			reviveCarousel.init()
+			reviveCarousel.init()
+			await frame()
+			reviveCarousel.destroy()
+			assert(!Object.hasOwn(revive, 'scrollTo'), 'double init() then one destroy() leaves no override behind')
+
+			// --- 9. destroy() undoes everything it wrote to the DOM ---
+			const undoEl = document.createElement('ul')
+			undoEl.className = 'carousel'
+			undoEl.style.scrollSnapType = 'x proximity'
+			document.getElementById('stage').append(undoEl)
+			for (let i = 0; i < 6; i++) undoEl.append(richSlide())
+			const undoCarousel = Blossom(undoEl, { repeat: true })
+			undoCarousel.init()
+			await frame()
+			undoCarousel.next()
+			await wait(400)
+			undoCarousel.destroy()
+			assert(
+				[...undoEl.children].every((el) => !el.style.translate),
+				'destroy() in repeat mode clears slide translations',
+			)
+			assert(undoEl.style.scrollSnapType === 'x', 'destroy() restores the authored inline scroll-snap-type', `got "${undoEl.style.scrollSnapType}"`)
+
+			// --- 10. destroy() restores the globals it patched ---
+			const beforeDestroy = Element.prototype.scrollIntoView
+			carousel.destroy()
+			assert(Element.prototype.scrollIntoView === beforeDestroy, 'scrollIntoView stays patched while another instance lives')
+			deepCarousel.destroy()
+			assert(
+				Element.prototype.scrollIntoView !== beforeDestroy && !Object.hasOwn(deep, 'scrollTo'),
+				'last destroy() restores scrollIntoView and the scrollTo override',
+			)
+
+			log.insertAdjacentHTML('beforeend', `<h2 class="${failures ? 'fail' : 'pass'}">${failures ? `${failures} FAILED` : 'ALL PASS'}</h2>`)
+			document.title = failures ? `${failures} FAILED` : 'ALL PASS'
+		</script>
+	</body>
+</html>
